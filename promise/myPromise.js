@@ -1,4 +1,4 @@
-medule.exports = function Promise (execute) {
+function Promise (execute) {
 
   let self = this;
   self.value = undefined; // promise的结果
@@ -13,7 +13,7 @@ medule.exports = function Promise (execute) {
     if (self.status === 'pending') {
       self.value = value;
       self.status = 'resolved';
-      self.onFulfilledCallback.forEach(fn => fn())
+      self.onFulfilledCallback.forEach(fn => fn(self.value))
     }
   }
   // 状态变失败
@@ -22,7 +22,7 @@ medule.exports = function Promise (execute) {
     if (self.status === 'pending') {
       self.reason = reason;
       self.status = 'rejected';
-      self.onRejectedCallback.forEach(fn => fn())
+      self.onRejectedCallback.forEach(fn => fn(self.reason))
     }
   }
   // 捕捉错误
@@ -38,7 +38,6 @@ function resolvePromise (newPromise, x, resolve, reject) {
   if (newPromise === x) {
     return reject(new TypeError('can not return the same promise')); // 因为返回同一个promise不符合promiseAplus 规范
   }
-  // 保证 resolve 和 reject 只能执行一个.
   let called = false;
   // 判断x是否是函数或者对象
   if (x != null && (typeof x === 'object' || typeof x === 'function')) {
@@ -76,12 +75,10 @@ function resolvePromise (newPromise, x, resolve, reject) {
 
 Promise.prototype.then = function (onFulfilled, onRejected) {
   let self = this;
-  // 根据 Aplus 规范,返回一个新的promise 
   let newPromise = new Promise((resolve, reject) => {
 
     if(self.status === 'resolved'){
       try {
-        // 保证异步,统一处置
         setTimeout(() => {
           let x = onFulfilled(self.value);
           resolvePromise(newPromise, x, resolve, reject);
@@ -103,10 +100,11 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
     }
 
     if (self.status === 'pending') {
+
       self.onFulfilledCallback.push(() => {
         setTimeout(() => {
           try {
-            let x = onFulfilled(self.reason);
+            let x = onFulfilled(self.value);
             resolvePromise(newPromise, x, resolve, reject);
           } catch (err) {
             reject(err)
@@ -130,3 +128,5 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
 
   return newPromise;
 }
+
+module.exports = Promise
