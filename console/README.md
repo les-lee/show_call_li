@@ -38,6 +38,15 @@ console.assert(),第一个参数如果为false,那么他会打印后面的值,�
 
 上面已经提过,这个可以打印出dom节点对应的对象,或者函数对象.
 
+- 命令行的输出是异步的
+
+在命令行输入以下代码,神奇的事情发生了.
+
+```js
+response = await fetch('http://baidu.com');
+json = await response.text();
+```
+
 ## 命令面板
 
 在chrome 调试模式的时候,按下ctrl+shitf+P, 没错跟vscode 打开命令面板的快捷键一模一样,如果你用的是webstorm 上 那就用double shift 这里可以执行所又的命令, 下面来说一下某些命令
