@@ -109,27 +109,90 @@ console.log('quick---', quick());
 function insert(args) {
     if (args === void 0) { args = [1, 2, 3, 45, 6, 7, 8, 9]; }
     // 首先拿一个出来作为有序数组的开头.
-    var result = [args[0]];
     var totalLength = args.length;
     // 无序数组的循环.
     for (var i = 1; i < totalLength; i++) {
-        var current = args[i];
-        // 有序数组的循环,从后往前.
-        var secondMaxIndex = -1;
-        for (var j = result.length; j > 0; j--) {
-            var last = j - 1;
-            if (current > result[last]) {
-                secondMaxIndex = last;
+        
+        for (var j = 0; j < i; j++) {
+            if (args[j] > args[i]) {
+                //  1, 2, 3, 45, 6, 7, 8, 9
+                //     j     i
+                args.splice(j, 0, args[i]);
+                args.splice(i + 1, 1);
                 break;
             }
         }
-        if (secondMaxIndex >= 0) {
-            result = result.slice(0, secondMaxIndex + 1).concat(current, result.slice(secondMaxIndex + 1));
-        }
-        else {
-            result.unshift(current);
-        }
     }
-    return result;
+    return args;
 }
 console.log('insert---', insert());
+
+/**
+ * shell sort (希尔)
+ * 
+ * 希尔排序的关键是分步的策略.
+ * 从维基百科中查阅到,最优解是由两个多项式决定的(这里涉水有点深,以后用到再了解不迟).
+ * 为了简单,这里采用原始的二分策略.
+ */
+function shellsort (args = [1, 2, 3, 45, 6, 7, 8, 9]) {
+    // 首先定义一个步伐
+    var length = args.length;
+    var gap;;
+    for (var gap = length >> 1 ; gap > 0; gap >>= 1 ) {
+        for (var i = gap ; i < length; i++) {
+            for (var j = i - gap ; j < length; j = j + gap) {
+                
+                if (args[i - gap] > args[j]) {
+                    args.splice(i - gap, 0, args[j])
+                    args.splice(j + 1 , 1);
+                    break;
+                }
+            }
+        }
+    }
+
+    return args;
+}
+
+console.log('shellsort---', shellsort());
+
+/**
+ * merge sort 归并排序
+ * 递归实现
+ */
+
+function mergesort (args = [4, 99, 22, -7, 5, 33, 7, 35]) {
+    if (args.length === 1) return args;
+    var middle = args.length/2;
+    // 分治法, 一分为二.
+    var args1 = mergesort(args.slice(0, middle));
+    var args2 = mergesort(args.slice(middle));
+
+    var result = [];
+    var temp1 = undefined;
+    var temp2 = undefined;
+    // 这下面是一个最快的选择排序,因为第一个就是最小的.不用遍历.
+    while (args1.length != 0 && args2.length != 0) {
+        temp1 = temp1 || args1.shift();
+        temp2 = temp2 || args2.shift();
+        
+        if (temp1 > temp2) {
+            result.push(temp2);
+            // 如果是引用类型,这里不能直接赋值.
+            temp2 = undefined;
+        } else {
+            result.push(temp1);
+            temp1 = undefined;
+        }
+    }
+    var rest;
+    args1.length ? rest = args1.shift() : rest = args2.shift();
+    // 如果没有剩下的,代表全部OK.把最后一个比较的值加在最后即可,因为他一定是最大的.
+    if (!rest) return result.concat(temp1 || temp2);
+    // 如果有剩下的, 就要考虑是否剩下的跟最后一个比较的值得大小.有可能最后一个比较的不是最大的.
+    rest > temp1 || temp2 ? result = result.concat(temp1 || temp2, rest) :  result = result.concat(rest, temp1 || temp2);
+
+    return result;
+}
+
+console.log('merge---', mergesort());
