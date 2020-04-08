@@ -1,5 +1,5 @@
 // 这里是工具函数,为了移植方便写在同一个文件里面
-function isThenable (value) {
+function isThenable(value) {
   return (value && (typeof value === 'object' && typeof value.then === 'function'))
 }
 
@@ -7,7 +7,7 @@ function isThenable (value) {
 
 // promise 从这里开始
 
-function Promise (execute) {
+function Promise(execute) {
 
   let self = this;
   self.value = undefined; // promise的结果
@@ -17,7 +17,7 @@ function Promise (execute) {
   self.onRejectedCallback = [];
 
   // 状态由pending => resolved
-  function resolve (value) {
+  function resolve(value) {
 
     if (self.status === 'pending') {
       self.value = value;
@@ -26,7 +26,7 @@ function Promise (execute) {
     }
   }
   // 状态变失败
-  function reject (reason) {
+  function reject(reason) {
 
     if (self.status === 'pending') {
       self.reason = reason;
@@ -37,13 +37,13 @@ function Promise (execute) {
   // 捕捉错误
   try {
     execute(resolve, reject);
-  } catch (err){
+  } catch (err) {
     reject(err)
   }
 }
 
 
-function resolvePromise (newPromise, x, resolve, reject) {
+function resolvePromise(newPromise, x, resolve, reject) {
   if (newPromise === x) {
     return reject(new TypeError('can not return the same promise')); // 因为返回同一个promise不符合promiseAplus 规范
   }
@@ -56,13 +56,13 @@ function resolvePromise (newPromise, x, resolve, reject) {
       var then = x.then;
       if (typeof then === 'function') {
         then.call(x, value => {
-          if (called); return;
+          if (called) return;
           called = true
           // value 有可能还是一个 promise
           resolvePromise(newPromise, value, resolve, reject)
 
         }, (err) => {
-          if (called); return;
+          if (called) return;
           called = true;
           reject(err)
         })
@@ -71,7 +71,7 @@ function resolvePromise (newPromise, x, resolve, reject) {
         resolve(x);
       }
     } catch (err) {
-      if(called); return;
+      if (called) return;
       called = true;
       reject(err);
     }
@@ -86,7 +86,7 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
   let self = this;
   let newPromise = new Promise((resolve, reject) => {
 
-    if(self.status === 'resolved'){
+    if (self.status === 'resolved') {
       try {
         setTimeout(() => {
           let x = onFulfilled(self.value);
@@ -96,17 +96,15 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
         reject(err);
       }
     }
-    if(self.status === 'rejected'){
-      console.log('到这里了')
-      try {
-        setTimeout(() => {
-
+    if (self.status === 'rejected') {
+      setTimeout(() => {
+        try {
           let x = onRejected(self.reason);
           resolvePromise(newPromise, x, resolve, reject);
-        }, 0)
-      } catch (err) {
-        reject(err)
-      }
+        } catch (err) {
+          reject(err)
+        }
+      }, 0)
     }
 
     if (self.status === 'pending') {
@@ -123,7 +121,7 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
       });
 
       self.onRejectedCallback.push(() => {
-        setTimeout(()=>{
+        setTimeout(() => {
           try {
             // 这里存在一种情况就是 onrejected 漏传, 这里会报 not a function 的错误 如果在这里判空 那就捕捉不到这个错误了
             let x = onRejected(self.reason);
@@ -153,7 +151,7 @@ Promise.resolve = function (value) {
     // 展开这个对象 直到他的值不是 thenable 
     // 这里的展开并不递归的展开所有, 因为这种情况可以出现多个then
     // 因为 resolve 或者 reject 一个Promise 只能执行一次,所以只会展开当前对象
-    return new Promise (function (resolve, reject) {
+    return new Promise(function (resolve, reject) {
       // 把thenable的值传递给当前的Promise
       value.then(resolve);
     });
